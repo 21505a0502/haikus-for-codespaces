@@ -1,0 +1,174 @@
+FILE NAME: sample.js 
+const express=require('express'); 
+const mongoose=require('./config/mongoose'); 
+const todoData=require('./models/contactschema') 
+const port=8085; 
+const app=express(); 
+app.use(express.urlencoded()); 
+app.use(express.json()); 
+app.set('view engine','ejs'); 
+app.get('/',function(req,res){ 
+res.send("I'm in contact list home page"); 
+}); 
+app.get('/contact',(req,res)=>{ 
+todoData.find() 
+.then(result=>{ 
+res.render('ok',{todo:result}); 
+}) 
+.catch(err=>{ 
+console.log("error while fetching data"); 
+}); 
+}); 
+app.post('/add-task',function(req,res){ 
+const tddata=new Promise((resolve,reject)=>{ 
+todoData.create({ 
+description:req.body.description, 
+category:req.body.category, 
+date:req.body.date, 
+}) 
+.then(newData=>{ 
+console.log("*********new data***********"); 
+resolve(newData); 
+}).catch(err=>{ 
+console.log("error in add data",err); 
+reject(err); 
+}); 
+}); 
+tddata.then((newData)=>{
+6 
+res.redirect('/contact'); 
+}).catch((err)=>{ 
+console.log("error",err); 
+}); 
+}); 
+app.get('/delete-task/:_id', function(req, res) { 
+const tddata=new Promise((resolve,reject)=>{ 
+todoData.deleteOne(req.params.id) 
+.then(Data=>{ 
+resolve(Data); 
+}).catch(err=>{ 
+console.log("error in add data",err); 
+reject(err); 
+}); 
+}); 
+tddata.then((Data)=>{ 
+res.redirect('/contact'); 
+}).catch((err)=>{ 
+console.log("error",err); 
+}); 
+}); 
+app.listen(port,function(err){ 
+if(err){ 
+console.log("error"); 
+return; 
+} 
+else 
+console.log("server is up and running on:"+port); 
+}); 
+
+
+
+
+FILE NAME: ok.ejs  
+<html> 
+<head> 
+<script src="https://kit.fontawesome.com/66e044b8f2.js" 
+crossorigin="anonymous" > 
+</script> 
+</head> 
+<body style="-ms-text-size-adjust: 36px;"><center> 
+<div style="height: auto;width: auto;background-color: aqua;width:  700px;"><h1 align="center">TO DO LIST</h1></div> 
+<div align="center" style="width: 700px;height: 150px;background color:cadetblue"> 
+<form action="add-task" method="post"> 
+<table> <!--add-contact route -->
+7 
+<tr><th>Description</th> 
+<th>Category</th> 
+<th>Date</th></tr> 
+<tr> 
+<th><input type="text" name="description" placeholder=" enter  description" required></th> 
+<th><label for="category">Choose a category:</label> 
+<select name="category" > 
+<option value="personal">personal</option> 
+<option value="work">work</option> 
+<option value="school">sports</option> 
+<option value="cleaning">education</option> 
+<option value="other">other</option> 
+</select></th> 
+<th><input type="date" name="date" placeholder="enter due date" required></th></tr><br><br> 
+<tr><th><button style="background-color:rgb(3, 149, 3)">Add  task</button></th> 
+<th><button style="background-color: rgb(215, 4, 4);">Delete  task</button></th></tr> 
+</table> 
+</form> 
+</div><br><br> 
+<div align="center" style="width: 700px;height: 150px;background color: lightseagreen;"> 
+<ul> 
+<% if (todo){%> 
+<% todo.forEach(i=>{ %> 
+<div> 
+<input type="checkbox" name="<%= i._id %>"> 
+<%= i.description %> 
+<%= i.category %> 
+<i class="fa-regular fa-calendar"></i><%= i.date %> 
+<!--<a href="/delete-task/ <%=  
+i._id%>"><button>delete</button></a>--> 
+</div> 
+<%})%>  
+<% } %> 
+</ul> 
+</div> 
+</center> 
+</body> 
+</html> 
+
+
+
+FILE NAME: .contactschema.js  
+const mongoose=require('mongoose');
+8 
+const todoSchema=new mongoose.Schema({ 
+description:{ 
+type:String, 
+required:true, 
+}, 
+category:{ 
+type:String, 
+required:true, 
+}, 
+date:{ 
+type:String, 
+required:true, 
+} 
+}); 
+const todoData=mongoose.model("todoData",todoSchema);//which schema is used module.exports=todoData; 
+FILE NAME: .mongoose.js  
+const mongoose= require('mongoose'); 
+mongoose.connect('mongodb://127.0.0.1/tododb'); 
+const db=mongoose.connection; 
+db.on('error',console.error.bind(console,"error in connection")); db.once('open',function(){ 
+console.log("db connected successfully"); 
+}); 
+FILE NAME: package.json  
+{ 
+"name": "msd", 
+"version": "1.0.0", 
+"description": "", 
+"main": "sample.js", 
+"scripts": { 
+"test": "echo \"Error: no test specified\" && exit 1" 
+}, 
+"author": "", 
+"license": "ISC", 
+"dependencies": { 
+"body-parser": "^1.20.2", 
+"ejs": "^3.1.9", 
+"express": "^4.18.2", 
+"mongodb": "^5.3.0", 
+"mongoose": "^7.1.0", 
+"nodemon": "^2.0.22" 
+} 
+}
+
+
+
+
